@@ -51,7 +51,7 @@ export default function Home() {
       <Box
         sx={{
           height: "90vh",
-          backgroundImage: "url('/public/hero.webp')",
+          backgroundImage: "url('/hero.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           display: "flex",
