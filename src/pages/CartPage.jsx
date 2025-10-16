@@ -13,7 +13,6 @@ import Header from "../components/Header";
 import { Link } from "react-router";
 
 const CartPage = () => {
-  // load the cart items from the local storage
   const [cart, setCart] = useState(getCart());
 
   const getCartTotal = () => {
@@ -25,108 +24,183 @@ const CartPage = () => {
   };
 
   const removeItemFromCart = (product) => {
-    // 1. remove product from cart
     const updatedCart = cart.filter((item) => item._id !== product._id);
-    // 2. update the cart data in local storage and the state
     updateCart(updatedCart);
-    // 3. update the state
     setCart(updatedCart);
   };
 
   return (
     <>
-      <Header current="cart" title="Cart" />
-      <Container sx={{ textAlign: "center" }}>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Product</TableCell>
-                <TableCell align="right">Price</TableCell>
-                <TableCell align="right">Quantity</TableCell>
-                <TableCell align="right">Total</TableCell>
-                <TableCell align="right">Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {cart.length > 0 ? (
-                cart.map((product) => (
-                  <TableRow
-                    key={product.id}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {product.name}
-                    </TableCell>
-                    <TableCell align="right">${product.price}</TableCell>
-                    <TableCell align="right">{product.quantity}</TableCell>
-                    <TableCell align="right">
-                      ${(product.price * product.quantity).toFixed(2)}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() => {
-                          Swal.fire({
-                            title: "Are you sure?",
-                            text: "You won't be able to revert this!",
-                            icon: "warning",
-                            showCancelButton: true,
-                            confirmButtonColor: "#3085d6",
-                            cancelButtonColor: "#d33",
-                            confirmButtonText: "Yes, delete it!",
-                          }).then(async (result) => {
-                            // once user confirm, then we delete the product
-                            if (result.isConfirmed) {
-                              removeItemFromCart(product);
-                            }
-                          });
-                        }}
-                      >
-                        Delete
-                      </Button>
+      <Header />
+      <Container maxWidth="lg" sx={{ mt: 5, mb: 8 }}>
+        {/* Title Section */}
+        <Box
+          sx={{
+            textAlign: "left",
+            mb: 4,
+            borderBottom: "3px solid #2e7d32",
+            pb: 1,
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", color: "#2e7d32" }}
+          >
+            My Cart
+          </Typography>
+        </Box>
+
+        {/* Cart Table */}
+        <Paper
+          elevation={4}
+          sx={{
+            borderRadius: 3,
+            overflow: "hidden",
+          }}
+        >
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: "#e8f5e9" }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>Product</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">
+                    Price
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">
+                    Quantity
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">
+                    Total
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">
+                    Action
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {cart.length > 0 ? (
+                  cart.map((product) => (
+                    <TableRow
+                      key={product.id}
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "#f9fbe7",
+                          transition: "0.3s",
+                        },
+                      }}
+                    >
+                      <TableCell component="th" scope="row">
+                        <Typography sx={{ fontWeight: "bold" }}>
+                          {product.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        RM {product.price.toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">{product.quantity}</TableCell>
+                      <TableCell align="right">
+                        RM {(product.price * product.quantity).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          variant="contained"
+                          color="error"
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: "none",
+                            fontWeight: "bold",
+                          }}
+                          onClick={() => {
+                            Swal.fire({
+                              title: "Remove this item?",
+                              text: "It will be deleted from your cart.",
+                              icon: "warning",
+                              showCancelButton: true,
+                              confirmButtonColor: "#3085d6",
+                              cancelButtonColor: "#d33",
+                              confirmButtonText: "Yes, remove it!",
+                            }).then(async (result) => {
+                              if (result.isConfirmed) {
+                                removeItemFromCart(product);
+                              }
+                            });
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      colSpan={5}
+                      align="center"
+                      sx={{ py: 4 }}
+                    >
+                      <Typography color="gray" variant="body1">
+                        No products added yet!
+                      </Typography>
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    No Product Add Yet!
+                )}
+
+                {/* Cart Total Row */}
+                <TableRow sx={{ backgroundColor: "#f1f8e9" }}>
+                  <TableCell colSpan={3}></TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                  >
+                    RM {getCartTotal()}
                   </TableCell>
                   <TableCell align="right"></TableCell>
-                  <TableCell align="right"></TableCell>
-                  <TableCell align="right"></TableCell>
-                  <TableCell align="right"></TableCell>
                 </TableRow>
-              )}
-              <TableRow
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell colSpan={3}></TableCell>
-                <TableCell align="right">${getCartTotal()}</TableCell>
-                <TableCell align="right"></TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, mb: 3, gap: 2 }}>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
+        {/* Buttons */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            mt: 4,
+            gap: 2,
+          }}
+        >
           <Button
-            variant="contained"
+            variant="outlined"
             color="error"
             component={Link}
             to="/menus"
+            sx={{
+              px: 4,
+              py: 1,
+              borderRadius: 2,
+              fontWeight: "bold",
+              textTransform: "none",
+            }}
           >
             Back
           </Button>
           <Button
             variant="contained"
-            color="primary"
+            color="success"
             component={Link}
             to="/checkout"
-            disabled={cart.length === 0 ? true : false}
+            disabled={cart.length === 0}
+            sx={{
+              px: 4,
+              py: 1,
+              borderRadius: 2,
+              fontWeight: "bold",
+              textTransform: "none",
+            }}
           >
             Checkout
           </Button>

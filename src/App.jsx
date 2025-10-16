@@ -13,6 +13,14 @@ import InvoicePage from "./pages/InvoicePage";
 import CheckoutPage from "./pages/CheckOutPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignUpPage";
+import PaymentVerify from "./pages/PaymentVerify";
+import OrdersPage from "./pages/OrdersPage";
+import UserPage from "./pages/UserPage";
+import BookingPage from "./pages/BookingPage";
+import BookingAdd from "./pages/BookingAdd";
+import ManageBooking from "./pages/ManageBooking";
+import BookingEdit from "./pages/BookingEdit";
+import ManageOrder from "./pages/ManageOrder";
 
 function App() {
   return (
@@ -29,7 +37,15 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/invoice" element={<InvoicePage />} />
+          <Route path="/verify-payment" element={<PaymentVerify />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<InvoicePage />} />
+          <Route path="/users" element={<UserPage />} />
+          <Route path="/bookings" element={<BookingPage />} />
+          <Route path="/bookings/add" element={<BookingAdd />} />
+          <Route path="/manage/admins/bookings" element={<ManageBooking />} />
+          <Route path="/bookings/:id/edit" element={<BookingEdit />} />
+          <Route path="/manage/orders/admin" element={<ManageOrder />} />
         </Routes>
         <Toaster />
       </BrowserRouter>

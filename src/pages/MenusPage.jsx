@@ -1,7 +1,6 @@
 import Header from "../components/Header";
 import {
   AppBar,
-  Toolbar,
   Typography,
   Tabs,
   Tab,
@@ -19,13 +18,16 @@ import { getCategories } from "../utils/api_category";
 import { useState, useEffect } from "react";
 import { API_URL } from "../utils/constants";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useNavigate, useParams, Link } from "react-router";
+import { Link } from "react-router";
 import { addToCart } from "../utils/cart";
+import { useCookies } from "react-cookie";
 
 export default function MenusPage() {
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState("all");
   const [categories, setCategories] = useState([]);
+  const [cookies, setCookie, removeCookie] = useCookies(["currentuser"]);
+  const { currentuser } = cookies;
 
   useEffect(() => {
     getProducts(category).then((data) => setProducts(data));
@@ -39,24 +41,36 @@ export default function MenusPage() {
     <>
       <Header />
       <Box sx={{ backgroundColor: "#FFF8E1", minHeight: "100vh" }}>
-        {/* Navbar */}
+        {/* Category Bar */}
         <AppBar
           position="sticky"
           elevation={0}
-          sx={{ backgroundColor: "#006241", color: "white" }}
+          sx={{
+            background: "linear-gradient(90deg, #004d31 0%, #007a53 100%)",
+            color: "white",
+            py: 1,
+          }}
         >
           <Tabs
             value={category}
             onChange={(e, newValue) => setCategory(newValue)}
-            sx={{
-              backgroundColor: "white",
-              color: "#006241",
-              "& .MuiTab-root": { fontWeight: 600 },
-              alignContent: "center",
-            }}
             centered
-            indicatorColor="primary"
+            indicatorColor="secondary"
             textColor="inherit"
+            sx={{
+              "& .MuiTab-root": {
+                color: "white",
+                fontWeight: 600,
+                textTransform: "none",
+                mx: 1,
+                "&:hover": { color: "#c8e6c9" },
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#c8e6c9",
+                height: "4px",
+                borderRadius: "2px",
+              },
+            }}
           >
             <Tab label="All" value="all" />
             {categories.map((cat) => (
@@ -67,7 +81,7 @@ export default function MenusPage() {
 
         <Box textAlign="center" mt={5} mb={3}>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{ fontWeight: "bold", color: "#006241" }}
           >
             Our Menu
@@ -81,14 +95,15 @@ export default function MenusPage() {
           sx={{ px: { xs: 2, sm: 4, md: 6 } }}
         >
           {products.map((product) => (
-            <Grid item xs={12} sm={6} md={3} key={product._id}>
+            <Grid item xs={12} sm={6} md={4} key={product._id}>
               <Card
                 sx={{
                   borderRadius: 3,
                   boxShadow: 3,
                   textAlign: "center",
-                  width: 250,
+                  width: 300,
                   m: 1,
+                  height: "100%",
                 }}
               >
                 <CardMedia
@@ -115,29 +130,34 @@ export default function MenusPage() {
                     RM {product.price}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#777", mt: 1 }}>
-                    Category: {product.category.label}
+                    Category: {product.category?.label}
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: "center", pb: 2 }}>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      backgroundColor: "#006241",
-                      "&:hover": { backgroundColor: "#004d31" },
-                    }}
-                    onClick={() => addToCart(product)}
-                  >
-                    Add to Cart
-                  </Button>
+                  {currentuser ? (
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#006241",
+                        "&:hover": { backgroundColor: "#004d31" },
+                      }}
+                      onClick={() => addToCart(product)}
+                    >
+                      Add to Cart
+                    </Button>
+                  ) : null}
                 </CardActions>
               </Card>
             </Grid>
           ))}
         </Grid>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
-          <Fab color="primary" aria-label="add" component={Link} to="/cart">
-            <ShoppingCartIcon />
-          </Fab>
+
+        <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1000 }}>
+          {currentuser ? (
+            <Fab aria-label="cart" component={Link} to="/cart">
+              <ShoppingCartIcon />
+            </Fab>
+          ) : null}
         </Box>
       </Box>
     </>

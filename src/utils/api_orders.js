@@ -11,6 +11,20 @@ export const getOrders = async (token) => {
   return response.data;
 };
 
+export const getOrdersAdmin = async (token) => {
+  const response = await axios.get(API_URL + "orders/" + "admin", {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+  return response.data;
+};
+
+export async function getOrder(id) {
+  const response = await axios.get(API_URL + "orders/" + id);
+  return response.data;
+}
+
 export const createOrder = async (
   customerName,
   customerEmail,

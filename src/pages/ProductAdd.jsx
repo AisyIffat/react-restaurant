@@ -3,14 +3,18 @@ import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import { useState, useEffect } from "react";
 import { addProduct } from "../utils/api_products";
-import { Button, Typography, Chip } from "@mui/material";
+import {
+  Button,
+  Typography,
+  FormControl,
+  Select,
+  InputLabel,
+  MenuItem,
+  Paper,
+} from "@mui/material";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
 import { toast } from "sonner";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { uploadImage } from "../utils/api_image";
@@ -33,7 +37,7 @@ const VisuallyHiddenInput = styled("input")({
 const ProductAdd = () => {
   const navigate = useNavigate();
   const [cookies] = useCookies(["currentuser"]);
-  const { currentuser = {} } = cookies; // assign empty object to avoid error if user is not logged in
+  const { currentuser = {} } = cookies;
   const { token = "" } = currentuser;
   const [name, setName] = useState("");
   const [price, setPrice] = useState(0);
@@ -46,16 +50,14 @@ const ProductAdd = () => {
   }, []);
 
   const handleFormSubmit = async (event) => {
-    // 1. check for error
     if (!name || !price || !category) {
       toast.error("Please fill up the required fields");
+      return;
     }
     try {
-      // 2. trigger the API to create new product
       await addProduct(name, price, category, image, token);
-      // 3. if successful, redirect user back to home page and show success message
       toast.success("New menu has been added");
-      navigate("/menus");
+      navigate("/products");
     } catch (error) {
       toast.error(error.message);
     }
@@ -64,94 +66,194 @@ const ProductAdd = () => {
   return (
     <>
       <Header />
-      <Container maxWidth="sm">
-        <Typography variant="h3" align="center" mb={2}>
-          Add New Menu
-        </Typography>
-        <Box mb={2}>
-          <TextField
-            label="Name"
-            fullWidth
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Box>
-        <Box mb={2}>
-          <TextField
-            type="number"
-            label="Price"
-            fullWidth
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </Box>
-        <Box mb={2}>
-          <FormControl sx={{ width: "100%" }}>
-            <InputLabel
-              id="demo-simple-select-label"
-              sx={{ backgroundColor: "white", paddingRight: "5px" }}
-            >
-              Filter By Category
-            </InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={category}
-              label="Category"
-              onChange={(event) => {
-                setCategory(event.target.value);
-              }}
-            >
-              {categories.map((cat) => (
-                <MenuItem value={cat._id}>{cat.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        <Box mb={2} sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          {image ? (
-            <>
-              <img src={API_URL + image} width="100px" />
-              <Button
-                color="info"
-                variant="contained"
-                size="small"
-                onClick={() => setImage(null)}
-              >
-                Remove
-              </Button>
-            </>
-          ) : (
-            <Button
-              component="label"
-              role={undefined}
-              variant="contained"
-              tabIndex={-1}
-              startIcon={<CloudUploadIcon />}
-            >
-              Upload image
-              <VisuallyHiddenInput
-                type="file"
-                onChange={async (event) => {
-                  const data = await uploadImage(event.target.files[0]);
-                  // set the image url into state
-                  setImage(data.image_url);
-                }}
-                accept="image/*"
-              />
-            </Button>
-          )}
-        </Box>
-        <Box mb={2}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleFormSubmit}
+      <Container sx={{ py: 5 }}>
+        <Paper
+          elevation={4}
+          sx={{
+            p: 4,
+            borderRadius: "16px",
+            maxWidth: "600px",
+            margin: "0 auto",
+            backgroundColor: "#fdfdfd",
+            boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Typography
+            variant="h4"
+            align="center"
+            sx={{
+              fontWeight: 700,
+              mb: 3,
+              color: "#2e7d32",
+            }}
           >
-            Submit
-          </Button>
-        </Box>
+            Add New Menu
+          </Typography>
+
+          <Box mb={3}>
+            <TextField
+              label="Name"
+              fullWidth
+              variant="outlined"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                },
+              }}
+            />
+          </Box>
+
+          <Box mb={3}>
+            <TextField
+              type="number"
+              label="Price (RM)"
+              fullWidth
+              variant="outlined"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                },
+              }}
+            />
+          </Box>
+
+          <Box mb={3}>
+            <FormControl fullWidth>
+              <InputLabel
+                id="category-select-label"
+                sx={{
+                  backgroundColor: "white",
+                  pr: 1,
+                }}
+              >
+                Select Category
+              </InputLabel>
+              <Select
+                labelId="category-select-label"
+                id="category-select"
+                value={category}
+                label="Category"
+                onChange={(event) => setCategory(event.target.value)}
+                sx={{
+                  borderRadius: "10px",
+                  backgroundColor: "#fff",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+                }}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat._id} value={cat._id}>
+                    {cat.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box
+            mb={4}
+            sx={{
+              display: "flex",
+              gap: 2,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              border: "2px dashed #a5d6a7",
+              borderRadius: "10px",
+              py: 3,
+              backgroundColor: "#f9fff9",
+            }}
+          >
+            {image ? (
+              <>
+                <img
+                  src={API_URL + image}
+                  width="120px"
+                  style={{
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+                  }}
+                />
+                <Button
+                  color="info"
+                  variant="contained"
+                  size="small"
+                  onClick={() => setImage(null)}
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: "8px",
+                    fontWeight: 600,
+                  }}
+                >
+                  Remove Image
+                </Button>
+              </>
+            ) : (
+              <Button
+                component="label"
+                variant="contained"
+                startIcon={<CloudUploadIcon />}
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#2e7d32",
+                  "&:hover": { backgroundColor: "#256528" },
+                  borderRadius: "10px",
+                  fontWeight: 600,
+                }}
+              >
+                Upload Image
+                <VisuallyHiddenInput
+                  type="file"
+                  onChange={async (event) => {
+                    const data = await uploadImage(event.target.files[0]);
+                    setImage(data.image_url);
+                  }}
+                  accept="image/*"
+                />
+              </Button>
+            )}
+          </Box>
+
+          <Box>
+            <Button
+              variant="contained"
+              color="success"
+              fullWidth
+              sx={{
+                textTransform: "none",
+                py: 1.3,
+                fontSize: "1rem",
+                borderRadius: "10px",
+                fontWeight: 600,
+                boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+              }}
+              onClick={handleFormSubmit}
+            >
+              Submit
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{
+                textTransform: "none",
+                py: 1.3,
+                fontSize: "1rem",
+                borderRadius: "10px",
+                fontWeight: 600,
+                boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+                mt: 1,
+              }}
+              component={Link}
+              to="/products"
+            >
+              Back
+            </Button>
+          </Box>
+        </Paper>
       </Container>
     </>
   );

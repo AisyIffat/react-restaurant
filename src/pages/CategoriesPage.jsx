@@ -6,24 +6,24 @@ import {
   Box,
   TextField,
   Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Modal,
 } from "@mui/material";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import Swal from "sweetalert2";
 import {
   addCategory,
   deleteCategory,
   updateCategory,
+  getCategories,
 } from "../utils/api_category";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-import { toast } from "sonner";
-import { getCategories } from "../utils/api_category";
-import Swal from "sweetalert2";
-import Modal from "@mui/material/Modal";
 
 const style = {
   position: "absolute",
@@ -32,7 +32,7 @@ const style = {
   transform: "translate(-50%, -50%)",
   width: 400,
   bgcolor: "background.paper",
-  border: "2px solid #000",
+  borderRadius: 3,
   boxShadow: 24,
   p: 4,
 };
@@ -44,40 +44,35 @@ const CategoriesPage = () => {
   const [open, setOpen] = useState(false);
   const [selectedCategoryID, setSelectedCategoryID] = useState("");
   const [selectedCategoryLabel, setSelectedCategoryLabel] = useState("");
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
-    // get products from API
-    getCategories(categories).then((data) => {
-      setCategories(data);
-    });
-  }, [categories]);
+    getCategories().then((data) => setCategories(data));
+  }, []);
 
-  const handleAddCategory = async (event) => {
-    // 1. check for error
-    if (!label) {
-      toast.error("Please fill up the required fields");
-    }
+  const handleAddCategory = async () => {
+    if (!label) return toast.error("Please fill up the required fields");
     try {
       await addCategory(label);
       toast.success("New category has been added");
       setLabel("");
-      navigate("/categories");
+      const updated = await getCategories();
+      setCategories(updated);
     } catch (error) {
       toast.error(error.message);
     }
   };
 
   const handleUpdateCategory = async (_id, label) => {
-    // 1. check for error
-    if (!label) {
-      toast.error("Please fill up the required fields");
-    }
+    if (!label) return toast.error("Please fill up the required fields");
     try {
       await updateCategory(_id, label);
       toast.success("Category has been updated");
-      navigate("/categories");
+      const updated = await getCategories();
+      setCategories(updated);
+      setOpen(false);
     } catch (error) {
       toast.error(error.message);
     }
@@ -86,19 +81,22 @@ const CategoriesPage = () => {
   const handleDeleteCategory = async (_id) => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#388e3c",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        await deleteCategory(_id);
-        const updateCategories = await getCategories(_id);
-        setCategories(updateCategories);
-
-        toast.success("Category has been deleted");
+        try {
+          await deleteCategory(_id);
+          const updated = await getCategories();
+          setCategories(updated);
+          toast.success("Category has been deleted");
+        } catch (error) {
+          toast.error(error.response.data.message);
+        }
       }
     });
   };
@@ -106,56 +104,90 @@ const CategoriesPage = () => {
   return (
     <>
       <Header current="categories" title="Manage Categories" />
-      <Container maxWidth="lg">
-        <Typography variant="h4">
-          <b>Categories</b>
+      <Container maxWidth="md" sx={{ mt: 5, mb: 5 }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          textAlign="center"
+          sx={{ mb: 3 }}
+          color="green"
+        >
+          Manage Categories
         </Typography>
+
         <Paper
-          elevation={2}
-          sx={{ mt: 1, mb: 3, p: 2, display: "flex", gap: 2 }}
+          elevation={3}
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mb: 4,
+            backgroundColor: "#f8fafc",
+          }}
         >
           <TextField
             label="Category Name"
             fullWidth
             value={label}
-            onChange={(event) => setLabel(event.target.value)}
-          ></TextField>
+            onChange={(e) => setLabel(e.target.value)}
+          />
           <Button
-            color="primary"
             variant="contained"
-            onClick={(event) => handleAddCategory(event.target.value)}
+            color="success"
+            sx={{ textTransform: "none", px: 4 }}
+            onClick={handleAddCategory}
           >
             Add
           </Button>
         </Paper>
-        <Paper elevation={2} sx={{ mt: 1, mb: 3, p: 2 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
+
+        <TableContainer
+          component={Paper}
+          elevation={3}
+          sx={{
+            borderRadius: 3,
+            backgroundColor: "#ffffff",
+            overflow: "hidden",
+          }}
+        >
+          <Table>
+            <TableHead sx={{ backgroundColor: "#2e7d32" }}>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Category Name
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ color: "white", fontWeight: "bold" }}
+                >
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {categories.map((category) => (
                 <TableRow
                   key={category._id}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  hover
+                  sx={{
+                    "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
+                  }}
                 >
-                  <TableCell component="th" scope="row">
-                    {category.label}
-                  </TableCell>
+                  <TableCell>{category.label}</TableCell>
                   <TableCell align="right">
                     <Box
                       sx={{
                         display: "flex",
                         justifyContent: "flex-end",
-                        gap: 3,
+                        gap: 2,
                       }}
                     >
                       <Button
-                        color="primary"
                         variant="contained"
+                        color="success"
+                        size="small"
                         onClick={() => {
                           setOpen(true);
                           setSelectedCategoryID(category._id);
@@ -165,11 +197,10 @@ const CategoriesPage = () => {
                         Edit
                       </Button>
                       <Button
-                        color="error"
                         variant="contained"
-                        onClick={() => {
-                          handleDeleteCategory(category._id);
-                        }}
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteCategory(category._id)}
                       >
                         Delete
                       </Button>
@@ -177,53 +208,52 @@ const CategoriesPage = () => {
                   </TableCell>
                 </TableRow>
               ))}
+              {categories.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={2} align="center" sx={{ py: 3 }}>
+                    No categories found.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
-          <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
-            <Box sx={style}>
-              <Typography id="modal-modal-title" variant="h4" component="h2">
-                Edit Category
-              </Typography>
-              <Typography id="modal-modal-description" sx={{ mt: 4 }}>
-                <TextField
-                  value={selectedCategoryLabel}
-                  fullWidth
-                  onChange={(e) => setSelectedCategoryLabel(e.target.value)}
-                ></TextField>
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 1,
-                  mt: 3,
-                }}
+        </TableContainer>
+
+        <Modal open={open} onClose={handleClose}>
+          <Box sx={style}>
+            <Typography
+              variant="h5"
+              mb={3}
+              textAlign="center"
+              fontWeight="bold"
+            >
+              Edit Category
+            </Typography>
+            <TextField
+              fullWidth
+              value={selectedCategoryLabel}
+              onChange={(e) => setSelectedCategoryLabel(e.target.value)}
+              sx={{ mb: 3 }}
+            />
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() =>
+                  handleUpdateCategory(
+                    selectedCategoryID,
+                    selectedCategoryLabel
+                  )
+                }
               >
-                <Button
-                  color="primary"
-                  variant="contained"
-                  onClick={() => {
-                    handleUpdateCategory(
-                      selectedCategoryID,
-                      selectedCategoryLabel
-                    );
-                    setOpen(false);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button color="error" variant="contained" onClick={handleClose}>
-                  Close
-                </Button>
-              </Box>
+                Save
+              </Button>
+              <Button variant="outlined" color="error" onClick={handleClose}>
+                Cancel
+              </Button>
             </Box>
-          </Modal>
-        </Paper>
+          </Box>
+        </Modal>
       </Container>
     </>
   );

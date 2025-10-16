@@ -1,4 +1,3 @@
-import * as React from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import Button from "@mui/material/Button";
@@ -13,12 +12,18 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CategoryIcon from "@mui/icons-material/Category";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import PersonIcon from "@mui/icons-material/Person";
+import BookIcon from "@mui/icons-material/Book";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import CasesIcon from "@mui/icons-material/Cases";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Typography } from "@mui/material";
 import { useCookies } from "react-cookie";
 
 const Header = (props) => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const { current } = props;
   const [cookies, setCookie, removeCookie] = useCookies(["currentuser"]);
   const navigate = useNavigate();
@@ -28,101 +33,179 @@ const Header = (props) => {
     setOpen(newOpen);
   };
 
+  const handleLogout = () => {
+    removeCookie("currentuser");
+    navigate("/");
+  };
+
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton component={Link} to="/">
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            Home
-            <ListItemText />
-          </ListItemButton>
-        </ListItem>
-      </List>
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton component={Link} to="/menus">
-            <ListItemIcon>
-              <MenuBookIcon />
-            </ListItemIcon>
-            Menu
-            <ListItemText />
-          </ListItemButton>
-        </ListItem>
-      </List>
+      {currentuser ? (
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/">
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <ListItemText primary="Home" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/menus">
+              <ListItemIcon>
+                <MenuBookIcon />
+              </ListItemIcon>
+              <ListItemText primary="Menu" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/orders">
+              <ListItemIcon>
+                <ShoppingBagIcon />
+              </ListItemIcon>
+              <ListItemText primary="My Orders" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/bookings">
+              <ListItemIcon>
+                <BookIcon />
+              </ListItemIcon>
+              <ListItemText primary="Bookings" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      ) : (
+        <>
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/">
+                <ListItemIcon>
+                  <HomeIcon />
+                </ListItemIcon>
+                <ListItemText primary="Home" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/menus">
+                <ListItemIcon>
+                  <MenuBookIcon />
+                </ListItemIcon>
+                <ListItemText primary="Menu" />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </>
+      )}
       <Divider />
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton component={Link} to="/products">
-            <ListItemIcon>
-              <RestaurantMenuIcon />
-            </ListItemIcon>
-            Manage Products
-            <ListItemText />
-          </ListItemButton>
-        </ListItem>
-      </List>
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton component={Link} to="/categories">
-            <ListItemIcon>
-              <CategoryIcon />
-            </ListItemIcon>
-            Manage Categories
-            <ListItemText />
-          </ListItemButton>
-        </ListItem>
-      </List>
+      {currentuser?.role === "admin" && (
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/users">
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="Manage Users" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/products">
+              <ListItemIcon>
+                <RestaurantMenuIcon />
+              </ListItemIcon>
+              <ListItemText primary="Manage Products" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/categories">
+              <ListItemIcon>
+                <CategoryIcon />
+              </ListItemIcon>
+              <ListItemText primary="Manage Categories" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/manage/orders/admin">
+              <ListItemIcon>
+                <CasesIcon />
+              </ListItemIcon>
+              <ListItemText primary="Manage Orders" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/manage/admins/bookings">
+              <ListItemIcon>
+                <BookmarkIcon />
+              </ListItemIcon>
+              <ListItemText primary="Manage Bookings" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      )}
     </Box>
   );
 
   return (
-    <div sx={{ height: "50px" }}>
+    <Box
+      sx={{
+        height: "60px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        boxShadow: 1,
+      }}
+    >
+      {/* Left side - Drawer menu */}
       <Button onClick={toggleDrawer(true)}>
-        <MenuIcon />
+        <MenuIcon sx={{ color: "#006241" }} />
       </Button>
       <Drawer open={open} onClose={toggleDrawer(false)}>
         {DrawerList}
       </Drawer>
-      <Typography variant="body" sx={{ fontWeight: "bold", color: "#006241" }}>
+
+      {/* Center - Title */}
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: "bold",
+          color: "#006241",
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
+          whiteSpace: "nowrap",
+        }}
+        component={Link}
+        to="/"
+      >
         Nasi Lemak & Western
       </Typography>
+
+      {/* Right side - Login/Logout */}
       {currentuser ? (
-        <Button
-          variant="outlined"
-          onClick={() => {
-            // remove cookie
-            removeCookie("currentuser");
-            // redirect back to home page
-            navigate("/");
-          }}
-        >
-          Logout
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography sx={{ color: "#006241", fontWeight: 500 }}>
+            Welcome, {currentuser.name}!
+          </Typography>
+          <Button variant="contained" color="error" onClick={handleLogout}>
+            Logout
+          </Button>
+        </Box>
       ) : (
-        <>
+        <Box>
           <Button
-            variant={current === "login" ? "contained" : "outlined"}
-            color="primary"
+            variant="contained"
+            color="success"
             component={Link}
             to="/login"
+            sx={{ mr: 1 }}
           >
             Login
           </Button>
-          <Button
-            variant={current === "signup" ? "contained" : "outlined"}
-            color="primary"
-            component={Link}
-            to="/signup"
-          >
-            Sign Up
-          </Button>
-        </>
+        </Box>
       )}
-    </div>
+    </Box>
   );
-}
+};
 
 export default Header;

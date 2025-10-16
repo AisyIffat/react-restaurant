@@ -1,72 +1,96 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams} from "react-router";
+import { getOrder } from "../utils/api_orders";
 import "../styles/invoice.css";
+import { Button, Container } from "@mui/material";
 
 const InvoicePage = () => {
-  const invoiceData = {
-    invoiceNumber: "INV-2025-001",
-    date: "11 October 2025",
-    name: "Aisy Iffat",
-    email: "aisy@example.com",
-    items: [
-      { description: "Nasi Lemak Set", quantity: 2, price: 8.5 },
-      { description: "Western Chicken Chop", quantity: 1, price: 14.0 },
-    ],
-  };
+  const { id } = useParams();
+  const [order, setOrder] = useState(null);
+  const navigate = useNavigate();
 
-  const total = invoiceData.items.reduce(
-    (sum, item) => sum + item.quantity * item.price,
-    0
-  );
+  useEffect(() => {
+    getOrder(id)
+      .then((data) => {
+        setOrder(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [id]);
+
+  if (!order) return <p>No order found</p>;
 
   return (
     <div className="invoice-container">
-      <header className="invoice-header">
-        <h1>Nasi Lemak & Western</h1>
-        <p>Receipt / Invoice</p>
-      </header>
+      <div className="invoice-box">
+        <h1 className="invoice-title">Nasi Lemak & Western</h1>
+        <p className="invoice-address">
+          123 Jalan Makan, Kuala Lumpur <br />
+          support@nasiwester.my | +60 12-345 6789
+        </p>
 
-      <section className="invoice-info">
-        <div>
-          <h3>Bill To:</h3>
-          <p>{invoiceData.name}</p>
-          <p>{invoiceData.email}</p>
+        <div className="invoice-info">
+          <div>
+            <p>
+              <strong>Customer:</strong> {order.customerName}
+            </p>
+            <p>
+              <strong>Email:</strong> {order.customerEmail}
+            </p>
+          </div>
+          <div>
+            <p>
+              <strong>Invoice ID:</strong> {order._id}
+            </p>
+            <p>
+              <strong>Status:</strong> {order.status}
+            </p>
+            <p>
+              <strong>Date:</strong> {new Date(order.paid_at).toLocaleString()}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3>Invoice Details:</h3>
-          <p>Invoice No: {invoiceData.invoiceNumber}</p>
-          <p>Date: {invoiceData.date}</p>
-        </div>
-      </section>
 
-      <table className="invoice-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Qty</th>
-            <th>Price (RM)</th>
-            <th>Total (RM)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoiceData.items.map((item, index) => (
-            <tr key={index}>
-              <td>{item.description}</td>
-              <td>{item.quantity}</td>
-              <td>{item.price.toFixed(2)}</td>
-              <td>{(item.quantity * item.price).toFixed(2)}</td>
+        <table className="invoice-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {order.products?.map((item, index) => (
+              <tr key={item._id}>
+                <td>{index + 1}</td>
+                <td>{item.name}</td>
+                <td>{item.quantity}</td>
+                <td>RM {item.price.toFixed(2)}</td>
+                <td>RM {(item.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <div className="invoice-total">
-        <h3>Total: RM {total.toFixed(2)}</h3>
+        <div className="invoice-total">
+          <p>
+            <strong>Total Amount:</strong> RM {order.totalPrice.toFixed(2)}
+          </p>
+        </div>
+
+        <div className="invoice-footer">
+          <p>Thank you for dining with us 🍴</p>
+          <p>“Selera Tradisi, Rasa Moden”</p>
+        </div>
+
+        
       </div>
-
-      <footer className="invoice-footer">
-        <p>Thank you for your purchase!</p>
-        <p>Contact us: nasiwestern@example.com | +60 13-234 5678</p>
-      </footer>
+      <button className="back-home-btn" onClick={() => navigate("/orders")}>
+          ⬅ Back
+        </button>
     </div>
   );
 };
